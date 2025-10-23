@@ -27,6 +27,9 @@ private:
 	juce::TextButton stopButton{ "Stop" };
 	juce::TextButton repeatButton{ "Repeat" };
 	juce::TextButton muteButton{ "Mute" };
+    juce::TextButton endButton{ "End >|" };
+    juce::ToggleButton loopButton{ "Loop" };
+    juce::TextButton pauseButton{ "Pause" };
 	juce::Slider volumeSlider;
 
 	std::unique_ptr<juce::FileChooser> fileChooser;
