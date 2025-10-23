@@ -30,7 +30,7 @@ private:
     juce::TextButton endButton{ "End" };
     juce::ToggleButton loopButton{ "Loop" };
     juce::TextButton pauseButton{ "Pause" };
-    juce::TextButton pauseButton{ "Play" };
+    juce::TextButton playButton{ "Play" };
 	juce::Slider volumeSlider;
 
 	std::unique_ptr<juce::FileChooser> fileChooser;
