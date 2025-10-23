@@ -1,95 +1,122 @@
-#include "PlayerGUI.h"
+#include "PlayerGui.h"
 
-PlayerGUI::PlayerGUI(PlayerAudio& playerAudioRef)
-    : player(playerAudioRef)
-{
-    // Buttons
-    for (auto* btn : { &loadButton, &playButton, &stopButton, &muteButton })
+PlayerGUI::PlayerGUI() {
+    for (auto* btn : { &loadButton, &restartButton, &stopButton, &repeatButton, &muteButton })
     {
-        addAndMakeVisible(btn);
         btn->addListener(this);
+        addAndMakeVisible(btn);
     }
+    // repeat button
+    repeatButton.setClickingTogglesState(true);
+    repeatButton.setToggleState(false, juce::dontSendNotification);
+    repeatButton.addListener(this);
+    addAndMakeVisible(repeatButton);
 
     // Volume slider
-    volumeSlider.setRange(0.0, 1.0, 0.01);
-    volumeSlider.setValue(0.5);
+    volumeSlider.setRange(0.0, 100.0, 1.0);
+    volumeSlider.setValue(50.0);
     volumeSlider.addListener(this);
     addAndMakeVisible(volumeSlider);
-   
 }
-
 PlayerGUI::~PlayerGUI() {}
 
 void PlayerGUI::paint(juce::Graphics& g)
 {
-    g.fillAll(juce::Colours::hotpink);
+    g.fillAll(juce::Colours::darkgrey);
 }
 
+void PlayerGUI::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
+{
+    playerAudio.prepareToPlay(samplesPerBlockExpected, sampleRate);
+}
+
+void PlayerGUI::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)
+{
+    playerAudio.getNextAudioBlock(bufferToFill);
+}
+void PlayerGUI::releaseResources()
+{
+    playerAudio.releaseResources();
+}
 void PlayerGUI::resized()
 {
     int y = 20;
-    loadButton.setBounds(20, y, 100, 40);
-    playButton.setBounds(140, y, 80, 40);
-    stopButton.setBounds(240, y, 80, 40);
-    muteButton.setBounds(340, y, 80, 40);
-    volumeSlider.setBounds(20, 100, getWidth() - 40, 30);
-
+    loadButton.setBounds(10, y, 80, 30);
+    restartButton.setBounds(110, y, 80, 30);
+    stopButton.setBounds(210, y, 80, 30);
+    repeatButton.setBounds(310, y, 80, 30);
+    muteButton.setBounds(410, y, 80, 30);
+    volumeSlider.setBounds(10, 60, getWidth() - 20, 30);
 }
 void PlayerGUI::buttonClicked(juce::Button* button)
 {
     if (button == &loadButton)
     {
-        auto chooser = std::make_unique<juce::FileChooser>(
+        juce::FileChooser chooser("Select audio files...",
+            juce::File{},
+            "*.wav;*.mp3");
+
+        fileChooser = std::make_unique<juce::FileChooser>(
             "Select an audio file...",
             juce::File{},
             "*.wav;*.mp3");
 
-        auto chooserFlags = juce::FileBrowserComponent::openMode
-            | juce::FileBrowserComponent::canSelectFiles;
-
-        chooser->launchAsync(chooserFlags, [this](const juce::FileChooser& fc)
+        fileChooser->launchAsync(
+            juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
+            [this](const juce::FileChooser& fc)
             {
                 auto file = fc.getResult();
-                if (file.existsAsFile())
-                    player.loadFile(file);
+                playerAudio.loadFile(file);
             });
+    }
 
-        fileChooser = std::move(chooser);
-    
-    }
-    else if (button == &playButton)
+    else if (button == &restartButton)
     {
-        player.play();
+        playerAudio.play();
     }
+
     else if (button == &stopButton)
     {
-        player.stop();
+        playerAudio.stop();
+        playerAudio.setPosition(0.0);
+    }
+    else if (button == &repeatButton)
+    {
+        bool isRepeatOn = repeatButton.getToggleState();
+        playerAudio.getRepeatValue(isRepeatOn);
+
+        if (isRepeatOn)
+        {
+            repeatButton.setButtonText("Repeat: ON");
+        }
+        else
+        {
+            repeatButton.setButtonText("Repeat: OFF");
+        }
     }
     else if (button == &muteButton) {
         static bool muted = false;
         static float prevvolume = 0.5f;
         if (!muted) {
             prevvolume = (float)volumeSlider.getValue();
-            player.setVolume(0.0f);
+            playerAudio.setVolume(0.0f);
             volumeSlider.setValue(0.0f);
             muteButton.setButtonText("Unmute");
             muted = true;
         }
         else {
-            player.setVolume(prevvolume);
+            playerAudio.setVolume(prevvolume);
             volumeSlider.setValue(prevvolume);
             muteButton.setButtonText("Mute");
             muted = false;
 
 
         }
-    }                 
-    
+    }
 }
 
 void PlayerGUI::sliderValueChanged(juce::Slider* slider)
 {
     if (slider == &volumeSlider)
-        player.setVolume((float)slider->getValue());
-   
+        playerAudio.setGain((float)slider->getValue());
 }

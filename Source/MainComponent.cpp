@@ -1,10 +1,11 @@
 #include "MainComponent.h"
+#include "PlayerAudio.h"
+#include "PlayerGUI.h"
 
 MainComponent::MainComponent()
-    : playerGUI(playerAudio)
 {
-    addAndMakeVisible(playerGUI);
-    setSize(600, 400);
+    addAndMakeVisible(player1);
+    setSize(800, 400);
     setAudioChannels(0, 2);
 }
 
@@ -15,25 +16,28 @@ MainComponent::~MainComponent()
 
 void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
-    playerAudio.prepareToPlay(samplesPerBlockExpected, sampleRate);
+    player1.prepareToPlay(samplesPerBlockExpected, sampleRate);
 }
 
 void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)
 {
-    playerAudio.getNextAudioBlock(bufferToFill);
+    bufferToFill.clearActiveBufferRegion();
+    player1.getNextAudioBlock(bufferToFill);
+
 }
 
 void MainComponent::releaseResources()
 {
-    playerAudio.releaseResources();
-}
+    player1.releaseResources();
 
-void MainComponent::paint(juce::Graphics& g)
-{
-    g.fillAll(juce::Colours::black);
 }
 
 void MainComponent::resized()
 {
-    playerGUI.setBounds(getLocalBounds());
+
+    player1.setBounds(20, 20, getWidth() - 40, 120);
+}
+void MainComponent::paint(juce::Graphics& g)
+{
+    g.fillAll(juce::Colours::darkgrey);
 }
