@@ -97,3 +97,7 @@ void PlayerAudio::changeListenerCallback(juce::ChangeBroadcaster* source)
         }
     }
 }
+
+void PlayerAudio::pause() {
+    transportSource.stop();
+}
