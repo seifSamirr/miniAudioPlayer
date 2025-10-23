@@ -1,7 +1,7 @@
 #include "PlayerGui.h"
 
 PlayerGUI::PlayerGUI() {
-    for (auto* btn : { &loadButton, &restartButton, &stopButton, &repeatButton, &muteButton })
+    for (auto* btn : { &loadButton, &restartButton, &stopButton, &repeatButton, &muteButton, &playButton, &pauseButton, &endButton })
     {
         btn->addListener(this);
         addAndMakeVisible(btn);
@@ -16,7 +16,24 @@ PlayerGUI::PlayerGUI() {
     volumeSlider.setRange(0.0, 100.0, 1.0);
     volumeSlider.setValue(50.0);
     volumeSlider.addListener(this);
+     playButton.addListener(this);
+     restartButton.addListener(this);
+     loadButton.addListener(this);
+     stopButton.addListener(this);
+     loopButton.addListener(this);
+     pauseButton.addListener(this);
+     endButton.addListener(this);
+   
+    
     addAndMakeVisible(volumeSlider);
+
+    addAndMakeVisible(playButton);
+    addAndMakeVisible(restartButton);
+    addAndMakeVisible(loadButton);
+    addAndMakeVisible(stopButton);
+    addAndMakeVisible(loopButton);
+    addAndMakeVisible(pauseButton);
+    addAndMakeVisible(endButton);
 }
 PlayerGUI::~PlayerGUI() {}
 
@@ -46,6 +63,10 @@ void PlayerGUI::resized()
     stopButton.setBounds(210, y, 80, 30);
     repeatButton.setBounds(310, y, 80, 30);
     muteButton.setBounds(410, y, 80, 30);
+     playButton.setBounds(510, y, 80, 30);
+     pauseButton.setBounds(610, y, 80, 30);
+     endButton.setBounds(710, y, 80, 30);
+    
     volumeSlider.setBounds(10, 60, getWidth() - 20, 30);
 }
 void PlayerGUI::buttonClicked(juce::Button* button)
@@ -113,6 +134,21 @@ void PlayerGUI::buttonClicked(juce::Button* button)
 
         }
     }
+
+    
+    else if (button == &playButton)
+    {
+        playerAudio.play();
+    }
+    else if (button == &pauseButton)
+    {
+        playerAudio.pause();
+    }
+    else if (button == &endButton)
+    {
+        playerAudio.setPosition(playerAudio.getLength());
+        playerAudio.stop();
+    }
 }
 
 void PlayerGUI::sliderValueChanged(juce::Slider* slider)
@@ -120,3 +156,4 @@ void PlayerGUI::sliderValueChanged(juce::Slider* slider)
     if (slider == &volumeSlider)
         playerAudio.setGain((float)slider->getValue());
 }
+
