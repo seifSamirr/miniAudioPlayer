@@ -101,3 +101,24 @@ void PlayerAudio::changeListenerCallback(juce::ChangeBroadcaster* source)
 void PlayerAudio::pause() {
     transportSource.stop();
 }
+
+void PlayerAudio::skipforward(double seconds)
+{
+	double newPosition = getPosition() + seconds;   
+	double lengthoftrack = getLength();
+    if (newPosition > lengthoftrack) {
+        newPosition = lengthoftrack;
+		transportSource.setPosition(newPosition);
+	}
+	else { transportSource.setPosition(newPosition); }
+}
+
+void PlayerAudio::skipbackward(double seconds)
+{
+    double newPosition = getPosition() - seconds;
+    if (newPosition < 0.0) {
+        newPosition = 0.0;
+		transportSource.setPosition(newPosition);
+	}
+	else { transportSource.setPosition(newPosition); }
+}
