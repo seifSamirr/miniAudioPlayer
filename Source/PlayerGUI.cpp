@@ -1,7 +1,7 @@
 #include "PlayerGui.h"
 
 PlayerGUI::PlayerGUI() {
-    for (auto* btn : { &loadButton, &restartButton, &stopButton, &repeatButton, &muteButton, &playButton, &pauseButton, &endButton })
+    for (auto* btn : { &loadButton, &restartButton, &stopButton, &repeatButton, &muteButton, &playButton, &pauseButton, &endButton, &forwardButton, &backwardButton })
     {
         btn->addListener(this);
         addAndMakeVisible(btn);
@@ -63,9 +63,11 @@ void PlayerGUI::resized()
     stopButton.setBounds(210, y, 80, 30);
     repeatButton.setBounds(310, y, 80, 30);
     muteButton.setBounds(410, y, 80, 30);
-     playButton.setBounds(510, y, 80, 30);
-     pauseButton.setBounds(610, y, 80, 30);
-     endButton.setBounds(710, y, 80, 30);
+    playButton.setBounds(510, y, 80, 30);
+    pauseButton.setBounds(610, y, 80, 30);
+    endButton.setBounds(710, y, 80, 30);
+    forwardButton.setBounds(930, y, 100, 30);
+    backwardButton.setBounds(810, y, 100, 30);
     
     volumeSlider.setBounds(10, 60, getWidth() - 20, 30);
 }
@@ -149,6 +151,12 @@ void PlayerGUI::buttonClicked(juce::Button* button)
         playerAudio.setPosition(playerAudio.getLength());
         playerAudio.stop();
     }
+    else if (button == &forwardButton) {
+		playerAudio.skipforward(10.0);
+ }
+    else if (button == &backwardButton) {
+		playerAudio.skipbackward(10.0);
+ }
 }
 
 void PlayerGUI::sliderValueChanged(juce::Slider* slider)
