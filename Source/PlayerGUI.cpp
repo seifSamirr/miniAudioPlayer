@@ -13,8 +13,8 @@ PlayerGUI::PlayerGUI() {
     addAndMakeVisible(repeatButton);
 
     // Volume slider
-    volumeSlider.setRange(0.0, 100.0, 1.0);
-    volumeSlider.setValue(50.0);
+    volumeSlider.setRange(0.0, 1.0, 0.01);
+    volumeSlider.setValue(0.5);
     volumeSlider.addListener(this);
      playButton.addListener(this);
      restartButton.addListener(this);
@@ -39,7 +39,7 @@ PlayerGUI::~PlayerGUI() {}
 
 void PlayerGUI::paint(juce::Graphics& g)
 {
-    g.fillAll(juce::Colours::darkgrey);
+    g.fillAll(juce::Colours::white);
 }
 
 void PlayerGUI::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
