@@ -32,6 +32,8 @@ private:
     juce::TextButton pauseButton{ "Pause" };
     juce::TextButton playButton{ "Play" };
 	juce::Slider volumeSlider;
+	juce::TextButton forwardButton{"10s Forward"};
+	juce::TextButton backwardButton{"10s Backward"};
 
 	std::unique_ptr<juce::FileChooser> fileChooser;
 
