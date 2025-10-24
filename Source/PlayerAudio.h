@@ -28,6 +28,8 @@ public:
 	void changeListenerCallback(juce::ChangeBroadcaster* source) override;
 	void getRepeatValue(bool value);
 	bool repeatValue;
+	void skipforward(double seconds);
+	void skipbackward(double seconds);
 
 
 
@@ -38,5 +40,4 @@ private:
 
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlayerAudio)
 };
-
 
