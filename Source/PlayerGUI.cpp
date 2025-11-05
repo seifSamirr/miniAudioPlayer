@@ -16,6 +16,9 @@ PlayerGUI::PlayerGUI() {
     volumeSlider.setRange(0.0, 1.0, 0.01);
     volumeSlider.setValue(0.5);
     volumeSlider.addListener(this);
+    speedSlider.setRange(0.5,2.0, 0.01);
+    speedSlider.setValue(1.0);
+    speedSlider.addListener(this);
      playButton.addListener(this);
      restartButton.addListener(this);
      loadButton.addListener(this);
@@ -24,9 +27,8 @@ PlayerGUI::PlayerGUI() {
      pauseButton.addListener(this);
      endButton.addListener(this);
    
-    
     addAndMakeVisible(volumeSlider);
-
+    addAndMakeVisible(speedSlider);
     addAndMakeVisible(playButton);
     addAndMakeVisible(restartButton);
     addAndMakeVisible(loadButton);
@@ -34,13 +36,41 @@ PlayerGUI::PlayerGUI() {
     addAndMakeVisible(loopButton);
     addAndMakeVisible(pauseButton);
     addAndMakeVisible(endButton);
+
+   
+    startTimerHz(30);
+   
 }
 PlayerGUI::~PlayerGUI() {}
 
 void PlayerGUI::paint(juce::Graphics& g)
 {
-    g.fillAll(juce::Colours::white);
+    g.fillAll(juce::Colours::darkgrey);
+
+    auto bounds = waveformBounds;
+    g.setColour(juce::Colours::black);
+    g.fillRect(bounds);
+    if (thumbnail.getTotalLength() > 0.0)
+    {
+        
+        g.setColour(juce::Colours::aqua);
+        thumbnail.drawChannel(g, bounds, 0.0, thumbnail.getTotalLength(), 0, 1.0f);
+
+
+        
+        double progress = playerAudio.getPosition() / playerAudio.getLength();
+        int x = (int)(progress * bounds.getWidth()) + bounds.getX();
+
+        g.setColour(juce::Colours::hotpink);
+        g.drawLine((float)x, (float)bounds.getY(), (float)x, (float)bounds.getBottom(), 2.0f);
+    }
+    else
+    {
+        g.setColour(juce::Colours::white);
+        g.drawFittedText("No Audio Loaded", bounds, juce::Justification::centred, 1);
+    }
 }
+
 
 void PlayerGUI::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
@@ -70,6 +100,10 @@ void PlayerGUI::resized()
     backwardButton.setBounds(810, y, 100, 30);
     
     volumeSlider.setBounds(10, 60, getWidth() - 20, 30);
+    speedSlider.setBounds(10, 100, getWidth() - 20, 30);
+
+    waveformBounds.setBounds(50, 160, getWidth() - 100, 80);
+
 }
 void PlayerGUI::buttonClicked(juce::Button* button)
 {
@@ -89,8 +123,14 @@ void PlayerGUI::buttonClicked(juce::Button* button)
             [this](const juce::FileChooser& fc)
             {
                 auto file = fc.getResult();
-                playerAudio.loadFile(file);
-            });
+                if (file.existsAsFile())
+                {
+                    playerAudio.loadFile(file);
+                    thumbnail.setSource(new juce::FileInputSource(file));
+                }
+            }
+
+            );
     }
 
     else if (button == &restartButton)
@@ -163,5 +203,11 @@ void PlayerGUI::sliderValueChanged(juce::Slider* slider)
 {
     if (slider == &volumeSlider)
         playerAudio.setGain((float)slider->getValue());
+    if(slider == &speedSlider)
+        playerAudio.setSpeed((float)slider->getValue());
+}
+void PlayerGUI::timerCallback()
+{
+    repaint();
 }
 

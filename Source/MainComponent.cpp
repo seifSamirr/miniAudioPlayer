@@ -5,7 +5,7 @@
 MainComponent::MainComponent()
 {
     addAndMakeVisible(player1);
-    setSize(800, 400);
+    setSize(1000, 500);
     setAudioChannels(0, 2);
 }
 
@@ -35,7 +35,7 @@ void MainComponent::releaseResources()
 void MainComponent::resized()
 {
 
-    player1.setBounds(20, 20, getWidth() - 40, 120);
+    player1.setBounds(20, 20, getWidth() - 40, getHeight() - 40);
 }
 void MainComponent::paint(juce::Graphics& g)
 {

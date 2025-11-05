@@ -122,3 +122,20 @@ void PlayerAudio::skipbackward(double seconds)
 	}
 	else { transportSource.setPosition(newPosition); }
 }
+void PlayerAudio::setSpeed(float speed)
+{
+    if (readerSource) 
+    {
+        double currentPos = transportSource.getCurrentPosition();
+        transportSource.stop();
+        transportSource.setSource(
+            readerSource.get(),
+            0,
+            nullptr,
+            readerSource->getAudioFormatReader()->sampleRate * speed
+        );
+        transportSource.setPosition(currentPos);
+        transportSource.start();
+        
+    }
+}

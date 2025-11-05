@@ -24,13 +24,15 @@ public:
 	double getLength() const;
 
 	void setVolume(float newVolume);
+	void setSpeed(float speed);
+
 
 	void changeListenerCallback(juce::ChangeBroadcaster* source) override;
 	void getRepeatValue(bool value);
 	bool repeatValue;
 	void skipforward(double seconds);
 	void skipbackward(double seconds);
-
+	juce::AudioFormatManager& getFormatManager() { return formatManager; }
 
 
 private:
