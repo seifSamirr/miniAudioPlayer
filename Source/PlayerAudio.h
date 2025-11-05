@@ -1,7 +1,7 @@
 #pragma once 
 #include <JuceHeader.h>
 #include <vector>
-#include "../../../project111/Source/MetadataReader.h"
+#include "MetadataReader.h"
 
 class PlayerAudio : public juce::ChangeListener
 {
