@@ -1,7 +1,8 @@
 #include "PlayerGui.h"
+#include "PlayerAudio.h"
 
 PlayerGUI::PlayerGUI() {
-    for (auto* btn : { &loadButton, &restartButton, &stopButton, &repeatButton, &muteButton, &playButton, &pauseButton, &endButton, &forwardButton, &backwardButton })
+    for (auto* btn : { &loadButton, &restartButton, &stopButton, &repeatButton, &muteButton, &playButton, &pauseButton, &endButton, &forwardButton, &backwardButton, &loadPlaylistButton })
     {
         btn->addListener(this);
         addAndMakeVisible(btn);
@@ -26,6 +27,10 @@ PlayerGUI::PlayerGUI() {
      loopButton.addListener(this);
      pauseButton.addListener(this);
      endButton.addListener(this);
+
+	loadPlaylistButton.addListener(this);
+    prevTrackButton.addListener(this);
+    nextTrackButton.addListener(this);
    
     addAndMakeVisible(volumeSlider);
     addAndMakeVisible(speedSlider);
@@ -37,7 +42,23 @@ PlayerGUI::PlayerGUI() {
     addAndMakeVisible(pauseButton);
     addAndMakeVisible(endButton);
 
-   
+
+	 addAndMakeVisible(loadPlaylistButton);
+ addAndMakeVisible(prevTrackButton);
+ addAndMakeVisible(nextTrackButton);
+ addAndMakeVisible(currentTrackLabel);
+ currentTrackLabel.setText("No track loded ", juce::dontSendNotification);
+ playlistModel = std::make_unique<PlaylistModel>(*this);
+ playlistBox.setModel(playlistModel.get());
+ addAndMakeVisible(playlistBox);
+ loadPlaylistButton.setColour(juce::TextButton::buttonColourId, juce::Colours::grey);
+
+ addAndMakeVisible(metadataLabel);
+ metadataLabel.setColour(juce::Label::textColourId, juce::Colours::white);
+ metadataLabel.setFont(juce::Font(14.0f));
+ metadataLabel.setText("No file loaded", juce::dontSendNotification);
+
+ 
     startTimerHz(30);
    
 }
@@ -104,9 +125,28 @@ void PlayerGUI::resized()
 
     waveformBounds.setBounds(50, 160, getWidth() - 100, 80);
 
+
+	auto area = getLocalBounds();
+int playlistStartY = y + 200;
+int playlistHeight = 400;   
+loadPlaylistButton.setBounds(10, playlistStartY, 100, 25);
+prevTrackButton.setBounds(120, playlistStartY, 70, 25);
+nextTrackButton.setBounds(200, playlistStartY, 70, 25);
+currentTrackLabel.setBounds(280, playlistStartY, 300, 25);
+playlistBox.setBounds(10, playlistStartY + 40, getWidth() - 20, playlistHeight - 40);
+
+int metadataY = y + 40;
+auto metadataArea = getLocalBounds().withTop(metadataY).withHeight(180).reduced(20);
+metadataLabel.setBounds(metadataArea);
+int playlistY = metadataY + 70;
+    
+
 }
 void PlayerGUI::buttonClicked(juce::Button* button)
 {
+
+     std::cout << "Button clicked: " << button->getButtonText().toRawUTF8() << std::endl;
+	
     if (button == &loadButton)
     {
         juce::FileChooser chooser("Select audio files...",
@@ -126,6 +166,9 @@ void PlayerGUI::buttonClicked(juce::Button* button)
                 if (file.existsAsFile())
                 {
                     playerAudio.loadFile(file);
+
+                      updateMetadataDisplay();
+					
                     thumbnail.setSource(new juce::FileInputSource(file));
                 }
             }
@@ -135,7 +178,9 @@ void PlayerGUI::buttonClicked(juce::Button* button)
 
     else if (button == &restartButton)
     {
-        playerAudio.play();
+		 playerAudio.setPosition(0.0);
+         playerAudio.stop();
+         playerAudio.play();
     }
 
     else if (button == &stopButton)
@@ -197,6 +242,35 @@ void PlayerGUI::buttonClicked(juce::Button* button)
     else if (button == &backwardButton) {
 		playerAudio.skipbackward(10.0);
  }
+
+
+ else if (button == &loadPlaylistButton)
+ {
+     loadPlaylist();
+
+     updateMetadataDisplay();
+ }
+  
+ else if (button == &prevTrackButton)
+ {
+     if (playlist.hasPrevious())
+     {
+         playlist.previous();
+         playSelectedTrack();
+         updatePlaylistDisplay();
+     }
+ }
+ else if (button == &nextTrackButton)
+ {
+     if (playlist.hasNext())
+     {
+         playlist.next();
+         playSelectedTrack();
+         updatePlaylistDisplay();
+     }
+ }
+
+	
 }
 
 void PlayerGUI::sliderValueChanged(juce::Slider* slider)
@@ -209,5 +283,91 @@ void PlayerGUI::sliderValueChanged(juce::Slider* slider)
 void PlayerGUI::timerCallback()
 {
     repaint();
+}
+
+
+void PlayerGUI::loadPlaylist()
+{
+    fileChooser = std::make_unique<juce::FileChooser>(
+        "Select audio files for playlist",
+        juce::File::getSpecialLocation(juce::File::userDesktopDirectory),
+        "*.wav;*.mp3"
+    );
+
+    auto chooserFlags = juce::FileBrowserComponent::canSelectMultipleItems |
+        juce::FileBrowserComponent::openMode;
+
+    fileChooser->launchAsync(chooserFlags, [this](const juce::FileChooser& chooser)
+        {
+            auto results = chooser.getResults();
+
+            if (results.size() > 0)
+            {
+                playlist.clear();
+
+                
+                for (auto& file : results)
+                {
+                    if (file.existsAsFile())
+                    {
+                        playlist.addFile(file);
+                    }
+                }
+
+                updatePlaylistDisplay();
+
+            
+                if (playlist.getNumFiles() > 0)
+                {
+                    playlist.setCurrentIndex(0);
+                    playSelectedTrack();
+                }
+            }
+        });
+    
+    
+}
+
+void PlayerGUI::playSelectedTrack()
+{
+    auto file = playlist.getCurrentFile();
+
+    if (file.existsAsFile())
+    {
+        playerAudio.loadFile(file);
+        playerAudio.play();
+        currentTrackLabel.setText("Now Playing: " + file.getFileName(), juce::dontSendNotification);
+
+        updateMetadataDisplay();
+    }
+}
+
+void PlayerGUI::updatePlaylistDisplay()
+{
+    
+    playlistBox.updateContent();
+    playlistBox.repaint();
+
+    prevTrackButton.setEnabled(playlist.hasPrevious());
+    nextTrackButton.setEnabled(playlist.hasNext());
+
+    
+    if (playlist.getNumFiles() > 0)
+    {
+        currentTrackLabel.setText("Tracks: " + juce::String(playlist.getNumFiles()), juce::dontSendNotification);
+    }
+}
+
+void PlayerGUI::updateMetadataDisplay()
+{
+    auto metadata = playerAudio.getCurrentMetadata();
+
+    juce::String metadataText;
+    metadataText += "Title: " + metadata.title + "\n";
+    metadataText += "Artist: " + metadata.artist + "\n";
+    metadataText += "Duration: " + playerAudio.getFormattedDuration();
+
+    metadataLabel.setText(metadataText, juce::dontSendNotification);
+
 }
 
