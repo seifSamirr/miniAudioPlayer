@@ -3,7 +3,6 @@
 #include <JuceHeader.h>
 #include "Playlist.h"
 #include "PlayerGUI.h"
-#include "../../../project111/Source/Playlist.h"
 
 
 class PlayerGUI : public juce::Component,
