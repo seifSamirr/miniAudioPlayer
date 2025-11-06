@@ -21,18 +21,18 @@ public:
 	void prepareToPlay(int samplesPerBlockExpected, double sampleRate);
 	void getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill);
 	void releaseResources();
-	void timerCallback() override;
-    juce::String getLastFilePath() const { return lastSessionFile.getFullPathName(); }
+	juce::String getLastFilePath() const { return lastSessionFile.getFullPathName(); }
+
+	PlayerAudio& getAudio();
+	bool loadAudio(const juce::File& file);
 
 
 private:
 	PlayerAudio playerAudio;
 	// GUI elements
-	//lol
 	juce::AudioThumbnailCache thumbnailCache{ 5 };
 	juce::AudioThumbnail thumbnail{ 512, playerAudio.getFormatManager(), thumbnailCache};
 	juce::Rectangle<int> waveformBounds;
-
 	
 	juce::TextButton loadButton{ "Load Files" };
 	juce::TextButton restartButton{ "Restart" };
@@ -47,8 +47,8 @@ private:
 	juce::Slider speedSlider;
 	juce::TextButton forwardButton{"10s Forward"};
 	juce::TextButton backwardButton{"10s Backward"};	   
-	 juce::Label metadataLabel;
-     void updateMetadataDisplay();
+	juce::Label metadataLabel;
+    void updateMetadataDisplay();
 	juce::TextButton loadPlaylistButton{ "Load Playlist" };
 	juce::ListBox playlistBox;
 	juce::TextButton prevTrackButton{ "Previous" };
@@ -57,14 +57,19 @@ private:
 	juce::TextButton addMarkerButton{ "Add Marker" };
     juce::TextButton deleteMarkerButton{ "Delete Marker" };
     juce::ComboBox markersList;
+
+	juce::Slider timeSlider;
+	juce::TextButton abLoopButton{ "A-B Loop" };
+
+
     std::vector<std::pair<juce::String, double>> markers;
 	juce::File lastSessionFile;							   
 
 	std::unique_ptr<juce::FileChooser> fileChooser;
 
 								   
-	    Playlist playlist;  
-class PlaylistModel : public juce::ListBoxModel
+	Playlist playlist;  
+	class PlaylistModel : public juce::ListBoxModel
 {
 public:
     PlaylistModel(PlayerGUI& owner) : owner(owner) {}
@@ -101,14 +106,32 @@ private:
     PlayerGUI& owner;
 };
 
-std::unique_ptr<PlaylistModel> playlistModel;  // ADD THIS LINE
+	std::unique_ptr<PlaylistModel> playlistModel;  
 
-void loadPlaylist();
-void updatePlaylistDisplay();
-void playSelectedTrack();
-							   
+	void loadPlaylist();
+	void updatePlaylistDisplay();
+	void playSelectedTrack();
+	
+
+	float valueToSliderX(double value);
+	double sliderXToValue(float x);
+
+	double startPoint = 0.0;
+	double endPoint = 0.0;
+	bool draggingStart = false;
+	bool draggingEnd = false;
+	bool showMarkers = false;
+	bool adjustingAB = false;
+
 	// Event handlers
 	void buttonClicked(juce::Button* button) override;
 	void sliderValueChanged(juce::Slider* slider) override;
+	void timerCallback();
+
+	void mouseDown(const juce::MouseEvent& e);
+	void mouseDrag(const juce::MouseEvent& e);
+	void mouseUp(const juce::MouseEvent&);
+
+
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlayerGUI)
 };

@@ -59,6 +59,7 @@ void MainComponent::saveSession()
 }
 
 
+
 void MainComponent::loadSession()
 {
     auto sessionFile = juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory)
@@ -76,6 +77,7 @@ void MainComponent::loadSession()
     if (file.existsAsFile())
     {
         player1.loadAudio(file);
-        player1.setPosition(lastPosition);
+        player1.getAudio().setPosition(lastPosition);
     }
 }
+
