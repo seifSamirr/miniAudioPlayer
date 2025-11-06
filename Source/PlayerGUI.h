@@ -22,6 +22,7 @@ public:
 	void getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill);
 	void releaseResources();
 	void timerCallback() override;
+    juce::String getLastFilePath() const { return lastSessionFile.getFullPathName(); }
 
 
 private:
@@ -56,7 +57,8 @@ private:
 	juce::TextButton addMarkerButton{ "Add Marker" };
     juce::TextButton deleteMarkerButton{ "Delete Marker" };
     juce::ComboBox markersList;
-    std::vector<std::pair<juce::String, double>> markers;							   
+    std::vector<std::pair<juce::String, double>> markers;
+	juce::File lastSessionFile;							   
 
 	std::unique_ptr<juce::FileChooser> fileChooser;
 
