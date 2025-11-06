@@ -58,7 +58,7 @@ bool PlayerAudio::loadFile(const juce::File& file)
             0,
             nullptr,
             reader->sampleRate);
-        transportSource.start();
+       // transportSource.start();
     }
 
    currentMetadata = MetadataReader::readMetadata(file);
