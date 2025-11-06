@@ -31,6 +31,9 @@ PlayerGUI::PlayerGUI() {
 	loadPlaylistButton.addListener(this);
     prevTrackButton.addListener(this);
     nextTrackButton.addListener(this);
+
+	deleteMarkerButton.addListener(this);
+    addMarkerButton.addListener(this);
    
     addAndMakeVisible(volumeSlider);
     addAndMakeVisible(speedSlider);
@@ -41,6 +44,20 @@ PlayerGUI::PlayerGUI() {
     addAndMakeVisible(loopButton);
     addAndMakeVisible(pauseButton);
     addAndMakeVisible(endButton);
+
+	addAndMakeVisible(addMarkerButton); 
+    addAndMakeVisible(deleteMarkerButton);
+    addAndMakeVisible(markersList);
+
+	markersList.onChange = [this]()
+    {
+        int index = markersList.getSelectedId() - 1; 
+        if (index >= 0 && index < static_cast<int>(markers.size()))
+        {
+            double pos = markers[index].second;
+            playerAudio.setPosition(pos);
+        }
+    };
 
 
 	 addAndMakeVisible(loadPlaylistButton);
@@ -119,7 +136,12 @@ void PlayerGUI::resized()
     endButton.setBounds(710, y, 80, 30);
     forwardButton.setBounds(930, y, 100, 30);
     backwardButton.setBounds(810, y, 100, 30);
-    
+	
+    addMarkerButton.setBounds(10, 260, 120, 28);
+    markersList.setBounds(140, 260, 240, 28);
+    deleteMarkerButton.setBounds(390, 260, 120, 28);
+
+	
     volumeSlider.setBounds(10, 60, getWidth() - 20, 30);
     speedSlider.setBounds(10, 100, getWidth() - 20, 30);
 
@@ -269,6 +291,31 @@ void PlayerGUI::buttonClicked(juce::Button* button)
          updatePlaylistDisplay();
      }
  }
+
+ else if (button == &addMarkerButton)
+    {
+        double pos = playerAudio.getPosition();
+        int totalSec = static_cast<int>(pos);
+        int minutes = totalSec / 60;
+        int seconds = totalSec % 60;
+        juce::String timeMarker = juce::String(minutes) + ":" + juce::String(seconds);
+
+
+        juce::String label = "Marker " + juce::String((int)markers.size() + 1) + " (" + timeMarker + ")";
+        markers.push_back({ label, pos });
+        markersList.addItem(label, (int)markers.size()); 
+    }
+    else if (button == &deleteMarkerButton)
+    {
+        int index = markersList.getSelectedId() - 1;
+        if (index >= 0 && index < static_cast<int>(markers.size()))
+        {
+            markers.erase(markers.begin() + index);
+            markersList.clear();
+            for (int i = 0; i < static_cast<int>(markers.size()); ++i)
+                markersList.addItem(markers[i].first, i + 1);
+        }
+    }
 
 	
 }
