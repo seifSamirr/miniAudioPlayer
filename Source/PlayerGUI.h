@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include "Playlist.h"
 #include "PlayerGUI.h"
+#include <vector>
 
 
 class PlayerGUI : public juce::Component,
@@ -51,7 +52,11 @@ private:
 	juce::ListBox playlistBox;
 	juce::TextButton prevTrackButton{ "Previous" };
 	juce::TextButton nextTrackButton{ "Next" };
-	juce::Label currentTrackLabel;							   
+	juce::Label currentTrackLabel;
+	juce::TextButton addMarkerButton{ "Add Marker" };
+    juce::TextButton deleteMarkerButton{ "Delete Marker" };
+    juce::ComboBox markersList;
+    std::vector<std::pair<juce::String, double>> markers;							   
 
 	std::unique_ptr<juce::FileChooser> fileChooser;
 
