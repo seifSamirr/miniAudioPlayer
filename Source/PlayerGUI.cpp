@@ -71,7 +71,6 @@ void PlayerGUI::paint(juce::Graphics& g)
     }
 }
 
-
 void PlayerGUI::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
     playerAudio.prepareToPlay(samplesPerBlockExpected, sampleRate);
@@ -172,12 +171,8 @@ void PlayerGUI::buttonClicked(juce::Button* button)
             volumeSlider.setValue(prevvolume);
             muteButton.setButtonText("Mute");
             muted = false;
-
-
         }
     }
-
-    
     else if (button == &playButton)
     {
         playerAudio.play();
