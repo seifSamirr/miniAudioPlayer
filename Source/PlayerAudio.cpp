@@ -39,26 +39,27 @@ juce::String PlayerAudio::getFormattedDuration() const
     return juce::String::formatted("%d:%02d", minutes, seconds);
 }
 
+juce::AudioTransportSource& PlayerAudio::getTransportSource()
+{ 
+    return transportSource; 
+}
+
 
 
 bool PlayerAudio::loadFile(const juce::File& file)
 {
     if (auto* reader = formatManager.createReaderFor(file))
     {
-        // 🔑 Disconnect old source first
         transportSource.stop();
         transportSource.setSource(nullptr);
         readerSource.reset();
 
-        // Create new reader source
         readerSource = std::make_unique<juce::AudioFormatReaderSource>(reader, true);
 
-        // Attach safely
         transportSource.setSource(readerSource.get(),
             0,
             nullptr,
             reader->sampleRate);
-       // transportSource.start();
     }
 
    currentMetadata = MetadataReader::readMetadata(file);
@@ -124,15 +125,13 @@ void PlayerAudio::pause() {
 
 void PlayerAudio::skipforward(double seconds)
 {
-   
-
-	double newPosition = getPosition() + seconds;   
-	double lengthoftrack = getLength();
+    double newPosition = getPosition() + seconds;
+    double lengthoftrack = getLength();
     if (newPosition > lengthoftrack) {
         newPosition = lengthoftrack;
-		transportSource.setPosition(newPosition);
-	}
-	else { transportSource.setPosition(newPosition); }
+        transportSource.setPosition(newPosition);
+    }
+    else { transportSource.setPosition(newPosition); }
 }
 
 void PlayerAudio::skipbackward(double seconds)
@@ -140,9 +139,9 @@ void PlayerAudio::skipbackward(double seconds)
     double newPosition = getPosition() - seconds;
     if (newPosition < 0.0) {
         newPosition = 0.0;
-		transportSource.setPosition(newPosition);
-	}
-	else { transportSource.setPosition(newPosition); }
+        transportSource.setPosition(newPosition);
+    }
+    else { transportSource.setPosition(newPosition); }
 }
 void PlayerAudio::setSpeed(float speed)
 {

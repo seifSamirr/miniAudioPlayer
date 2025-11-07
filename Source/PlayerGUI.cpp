@@ -2,7 +2,7 @@
 #include "PlayerAudio.h"
 
 PlayerGUI::PlayerGUI() {
-    for (auto* btn : { &loadButton, &restartButton, &stopButton, &repeatButton, &muteButton, &playButton, &pauseButton, &endButton, &forwardButton, &backwardButton, &loadPlaylistButton, &abLoopButton })
+    for (auto* btn : { &loadButton, &restartButton, &stopButton, &repeatButton, &muteButton, &playButton, &endButton, &forwardButton, &backwardButton, &loadPlaylistButton, &abLoopButton, &Mixer, &repeatButton })
     {
         btn->addListener(this);
         addAndMakeVisible(btn);
@@ -10,19 +10,15 @@ PlayerGUI::PlayerGUI() {
     // repeat button
     repeatButton.setClickingTogglesState(true);
     repeatButton.setToggleState(false, juce::dontSendNotification);
-    repeatButton.addListener(this);
-    addAndMakeVisible(repeatButton);
+
+    playButton.setClickingTogglesState(true);
+    playButton.setToggleState(false, juce::dontSendNotification);
 
     speedSlider.setRange(0.5, 2.0, 0.01);
     speedSlider.setValue(1.0);
     speedSlider.addListener(this);
-    playButton.addListener(this);
-    restartButton.addListener(this);
-    loadButton.addListener(this);
-    stopButton.addListener(this);
+
     loopButton.addListener(this);
-    pauseButton.addListener(this);
-    endButton.addListener(this);
 
     loadPlaylistButton.addListener(this);
     prevTrackButton.addListener(this);
@@ -33,17 +29,12 @@ PlayerGUI::PlayerGUI() {
 
     addAndMakeVisible(volumeSlider);
     addAndMakeVisible(speedSlider);
-    addAndMakeVisible(playButton);
-    addAndMakeVisible(restartButton);
-    addAndMakeVisible(loadButton);
-    addAndMakeVisible(stopButton);
     addAndMakeVisible(loopButton);
-    addAndMakeVisible(pauseButton);
-    addAndMakeVisible(endButton);
 
     addAndMakeVisible(addMarkerButton);
     addAndMakeVisible(deleteMarkerButton);
     addAndMakeVisible(markersList);
+
     auto setButtonStyle = [](juce::TextButton& btn)
         {
             btn.setColour(juce::TextButton::buttonColourId, juce::Colours::black);
@@ -52,7 +43,7 @@ PlayerGUI::PlayerGUI() {
         };
 
     for (auto* btn : { &loadButton, &restartButton, &stopButton, &repeatButton, &muteButton,
-                       &playButton, &pauseButton, &endButton, &forwardButton, &backwardButton,
+                       &playButton, &endButton, &forwardButton, &backwardButton,
                        &loadPlaylistButton, &addMarkerButton, &deleteMarkerButton, &abLoopButton,
                        &prevTrackButton, &nextTrackButton })
     {
@@ -87,6 +78,9 @@ PlayerGUI::PlayerGUI() {
     metadataLabel.setFont(juce::Font(18.0f));
     metadataLabel.setText("No file loaded", juce::dontSendNotification);
 
+    backgroundColour = juce::Colours::darkgrey;
+    gradientStart = juce::Colours::darkgrey;
+    gradientEnd = juce::Colours::black;
 
     startTimerHz(10);
 
@@ -120,7 +114,6 @@ PlayerGUI::~PlayerGUI() {}
 
 void PlayerGUI::paint(juce::Graphics& g)
 {
-    g.fillAll(backgroundColour);
     juce::ColourGradient backgroundGradient(
         gradientStart, 0, 0,           
         gradientEnd, 0, (float)getHeight(), 
@@ -188,83 +181,81 @@ void PlayerGUI::releaseResources()
 void PlayerGUI::resized()
 {
     auto area = getLocalBounds().reduced(10);
+    int spacing = 5;
 
-    // ====== الصف العلوي للأزرار ======
-    auto topRow = area.removeFromTop(40);
+    auto topRow = area.removeFromTop(35);
+    int buttonWidth = juce::jmax(55, (topRow.getWidth() - 7 * spacing) / 8);
 
-    juce::FlexBox topFlex;
-    topFlex.flexDirection = juce::FlexBox::Direction::row;
-    topFlex.justifyContent = juce::FlexBox::JustifyContent::spaceBetween;
-    topFlex.alignItems = juce::FlexBox::AlignItems::center;
+    loadButton.setBounds(topRow.removeFromLeft(buttonWidth).reduced(1));
+    topRow.removeFromLeft(spacing);
+    restartButton.setBounds(topRow.removeFromLeft(buttonWidth).reduced(1));
+    topRow.removeFromLeft(spacing);
+    stopButton.setBounds(topRow.removeFromLeft(buttonWidth).reduced(1));
+    topRow.removeFromLeft(spacing);
+    repeatButton.setBounds(topRow.removeFromLeft(buttonWidth).reduced(1));
+    topRow.removeFromLeft(spacing);
+    muteButton.setBounds(topRow.removeFromLeft(buttonWidth).reduced(1));
+    topRow.removeFromLeft(spacing);
+    playButton.setBounds(topRow.removeFromLeft(buttonWidth).reduced(1));
+    topRow.removeFromLeft(spacing);
+    endButton.setBounds(topRow.removeFromLeft(buttonWidth).reduced(1));
+    topRow.removeFromLeft(spacing);
+    abLoopButton.setBounds(topRow.reduced(1));
 
-    topFlex.items = {
-        juce::FlexItem(loadButton).withMinWidth(70).withHeight(30),
-        juce::FlexItem(restartButton).withMinWidth(70).withHeight(30),
-        juce::FlexItem(stopButton).withMinWidth(70).withHeight(30),
-        juce::FlexItem(repeatButton).withMinWidth(70).withHeight(30),
-        juce::FlexItem(muteButton).withMinWidth(70).withHeight(30),
-        juce::FlexItem(playButton).withMinWidth(70).withHeight(30),
-        juce::FlexItem(pauseButton).withMinWidth(70).withHeight(30),
-        juce::FlexItem(endButton).withMinWidth(70).withHeight(30),
-        juce::FlexItem(abLoopButton).withMinWidth(80).withHeight(30)
-    };
+    area.removeFromTop(spacing);
 
-    topFlex.performLayout(topRow);
+    auto slidersRow = area.removeFromTop(40);
+    int sliderWidth = (slidersRow.getWidth() - 10) / 2;
+    volumeSlider.setBounds(slidersRow.removeFromLeft(sliderWidth));
+    slidersRow.removeFromLeft(10);
+    speedSlider.setBounds(slidersRow);
 
-    // ====== السلايدرز ======
-    volumeSlider.setBounds(area.removeFromTop(40));
-    speedSlider.setBounds(area.removeFromTop(40));
-    timeSlider.setBounds(area.removeFromTop(40));
+    area.removeFromTop(spacing);
+    timeSlider.setBounds(area.removeFromTop(35));
 
-    // ====== موجة الصوت ======
-    waveformBounds = area.removeFromTop(80).reduced(10);
-    int buttonWidth = 120;
-    int buttonHeight = 35;
-    int buttonY = waveformBounds.getBottom() + 10;
-    int centerX = getWidth() / 2;
+    area.removeFromTop(spacing);
+    waveformBounds = area.removeFromTop(80).reduced(3);
 
-    backwardButton.setBounds(centerX - buttonWidth - 170, buttonY, buttonWidth, buttonHeight);
-    forwardButton.setBounds(centerX + 170, buttonY, buttonWidth, buttonHeight);
-    // ====== بيانات المقطع ======
-    
-    metadataLabel.setBounds(area.removeFromTop(60).removeFromRight(425).reduced(5));
+    area.removeFromTop(spacing);
 
-    // ====== ماركرز ======
-    auto markerRow = area.removeFromTop(40);
+    auto transportRow = area.removeFromTop(50);
+    int navButtonWidth = juce::jmax(65, transportRow.getWidth() / 6);
 
-    juce::FlexBox markerFlex;
-    markerFlex.flexDirection = juce::FlexBox::Direction::row;
-    markerFlex.justifyContent = juce::FlexBox::JustifyContent::flexStart;
-    markerFlex.alignItems = juce::FlexBox::AlignItems::center;
+    backwardButton.setBounds(transportRow.removeFromLeft(navButtonWidth).reduced(1));
+    transportRow.removeFromLeft(spacing);
+    forwardButton.setBounds(transportRow.removeFromRight(navButtonWidth).reduced(1));
+    transportRow.removeFromRight(spacing);
 
-    markerFlex.items = {
-        juce::FlexItem(addMarkerButton).withMinWidth(120).withHeight(30),
-        juce::FlexItem(markersList).withMinWidth(200).withHeight(30),
-        juce::FlexItem(deleteMarkerButton).withMinWidth(120).withHeight(30)
-    };
+    metadataLabel.setBounds(transportRow.reduced(3));
 
-    markerFlex.performLayout(markerRow);
+    area.removeFromTop(spacing);
 
-    // ====== Playlist ======
+    auto markerRow = area.removeFromTop(35);
+    int markerButtonWidth = juce::jmax(90, (markerRow.getWidth() - 2 * spacing) / 4);
+
+    addMarkerButton.setBounds(markerRow.removeFromLeft(markerButtonWidth).reduced(1));
+    markerRow.removeFromLeft(spacing);
+    deleteMarkerButton.setBounds(markerRow.removeFromRight(markerButtonWidth).reduced(1));
+    markerRow.removeFromRight(spacing);
+    markersList.setBounds(markerRow.reduced(1));
+
+    area.removeFromTop(spacing);
+
     auto playlistHeader = area.removeFromTop(30);
+    int plButtonWidth = juce::jmax(80, (playlistHeader.getWidth() - 3 * spacing) / 5);
 
-    juce::FlexBox playlistHeaderFlex;
-    playlistHeaderFlex.flexDirection = juce::FlexBox::Direction::row;
-    playlistHeaderFlex.justifyContent = juce::FlexBox::JustifyContent::flexStart;
-    playlistHeaderFlex.alignItems = juce::FlexBox::AlignItems::center;
+    loadPlaylistButton.setBounds(playlistHeader.removeFromLeft(plButtonWidth).reduced(1));
+    playlistHeader.removeFromLeft(spacing);
+    prevTrackButton.setBounds(playlistHeader.removeFromLeft(plButtonWidth).reduced(1));
+    playlistHeader.removeFromLeft(spacing);
+    nextTrackButton.setBounds(playlistHeader.removeFromLeft(plButtonWidth).reduced(1));
+    playlistHeader.removeFromLeft(spacing);
+    currentTrackLabel.setBounds(playlistHeader.reduced(1));
 
-    playlistHeaderFlex.items = {
-        juce::FlexItem(loadPlaylistButton).withMinWidth(120).withHeight(25),
-        juce::FlexItem(prevTrackButton).withMinWidth(70).withHeight(25),
-        juce::FlexItem(nextTrackButton).withMinWidth(70).withHeight(25),
-        juce::FlexItem(currentTrackLabel).withFlex(1.0f).withHeight(25)
-    };
+    area.removeFromTop(spacing);
 
-    playlistHeaderFlex.performLayout(playlistHeader);
-
-    playlistBox.setBounds(area.reduced(20));  // يتكبر مع الويندو
+    playlistBox.setBounds(area);
 }
-
 
 void PlayerGUI::buttonClicked(juce::Button* button)
 {
@@ -353,11 +344,16 @@ void PlayerGUI::buttonClicked(juce::Button* button)
     }
     else if (button == &playButton)
     {
-        playerAudio.play();
-    }
-    else if (button == &pauseButton)
-    {
-        playerAudio.pause();
+        if (playButton.getToggleState())
+        {
+            playerAudio.play();
+            playButton.setButtonText("Pause");
+        }
+        else
+        {
+            playerAudio.pause();
+            playButton.setButtonText("Play");
+        }
     }
     else if (button == &endButton)
     {
@@ -379,24 +375,6 @@ void PlayerGUI::buttonClicked(juce::Button* button)
         updateMetadataDisplay();
     }
 
-    else if (button == &prevTrackButton)
-    {
-        if (playlist.hasPrevious())
-        {
-            playlist.previous();
-            playSelectedTrack();
-            updatePlaylistDisplay();
-        }
-    }
-    else if (button == &nextTrackButton)
-    {
-        if (playlist.hasNext())
-        {
-            playlist.next();
-            playSelectedTrack();
-            updatePlaylistDisplay();
-        }
-    }
 
     else if (button == &addMarkerButton)
     {
@@ -618,14 +596,11 @@ double PlayerGUI::sliderXToValue(float x)
     float trackX = sliderBounds.getX() + padding;
     float trackWidth = sliderBounds.getWidth() - (2 * padding);
 
-    // احسب النسبة
     float localX = x - trackX;
     double proportion = localX / trackWidth;
 
-    // حدد النطاق
     proportion = juce::jlimit(0.0, 1.0, proportion);
 
-    // حول للقيمة
     double range = timeSlider.getMaximum() - timeSlider.getMinimum();
     return timeSlider.getMinimum() + (proportion * range);
 }

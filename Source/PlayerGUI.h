@@ -1,4 +1,4 @@
-﻿#pragma once // PlayerGUI.h
+﻿#pragma once 
 #include "PlayerAudio.h"
 #include <JuceHeader.h>
 #include "Playlist.h"
@@ -42,14 +42,12 @@ private:
 	juce::TextButton muteButton{ "Mute" };
     juce::TextButton endButton{ "End" };
     juce::ToggleButton loopButton{ "Loop" };
-    juce::TextButton pauseButton{ "Pause ||" };
     juce::TextButton playButton{ "Play" };
 	juce::Slider volumeSlider;
 	juce::Slider speedSlider;
 	juce::TextButton forwardButton{"10s >>"};
 	juce::TextButton backwardButton{"<< 10s"};	   
 	juce::Label metadataLabel;
-    void updateMetadataDisplay();
 	juce::TextButton loadPlaylistButton{ "Load Playlist" };
 	juce::ListBox playlistBox;
 	juce::TextButton prevTrackButton{ "Previous" };
@@ -61,6 +59,7 @@ private:
 
 	juce::Slider timeSlider;
 	juce::TextButton abLoopButton{ "A-B Loop" };
+	juce::TextButton Mixer{ "Mix" };
 
 
     std::vector<std::pair<juce::String, double>> markers;
@@ -73,47 +72,48 @@ private:
 	juce::Colour gradientEnd = juce::Colours::black;
 	Playlist playlist;  
 	class PlaylistModel : public juce::ListBoxModel
-{
-public:
-    PlaylistModel(PlayerGUI& owner) : owner(owner) {}
+	{
+		public:
+			PlaylistModel(PlayerGUI& owner) : owner(owner) {}
 
-    int getNumRows() override
-    {
-        return owner.playlist.getNumFiles();
-    }
+			int getNumRows() override
+			{
+				return owner.playlist.getNumFiles();
+			}
 
-    void paintListBoxItem(int rowNumber, juce::Graphics& g,
-        int width, int height, bool rowIsSelected) override
-    {
-        if (rowIsSelected)
-            g.fillAll(juce::Colours::aqua);
+			void paintListBoxItem(int rowNumber, juce::Graphics& g,
+				int width, int height, bool rowIsSelected) override
+			{
+				if (rowIsSelected)
+					g.fillAll(juce::Colours::aqua);
 
-        g.setColour(juce::Colours::white);
-        g.setFont(18.0f);
+				g.setColour(juce::Colours::white);
+				g.setFont(18.0f);
 
-        juce::String text = owner.playlist.getFileName(rowNumber);
-        if (rowNumber == owner.playlist.getCurrentIndex())
-            text = "> " + text;
+				juce::String text = owner.playlist.getFileName(rowNumber);
+				if (rowNumber == owner.playlist.getCurrentIndex())
+					text = "> " + text;
 
-        g.drawText(text, 5, 0, width - 5, height, juce::Justification::centredLeft);
-    }
+				g.drawText(text, 5, 0, width - 5, height, juce::Justification::centredLeft);
+			}
 
-    void listBoxItemClicked(int row, const juce::MouseEvent& event) override
-    {
-        owner.playlist.setCurrentIndex(row);
-        owner.playSelectedTrack();
-        owner.updatePlaylistDisplay();
-    }
+			void listBoxItemClicked(int row, const juce::MouseEvent& event) override
+			{
+				owner.playlist.setCurrentIndex(row);
+				owner.playSelectedTrack();
+				owner.updatePlaylistDisplay();
+			}
 
-private:
-    PlayerGUI& owner;
-};
+		private:
+			PlayerGUI& owner;
+	};
 
 	std::unique_ptr<PlaylistModel> playlistModel;  
 
 	void loadPlaylist();
 	void updatePlaylistDisplay();
 	void playSelectedTrack();
+    void updateMetadataDisplay();
 	
 
 	float valueToSliderX(double value);
@@ -124,7 +124,6 @@ private:
 	bool draggingStart = false;
 	bool draggingEnd = false;
 	bool showMarkers = false;
-	bool adjustingAB = false;
 
 	// Event handlers
 	void buttonClicked(juce::Button* button) override;

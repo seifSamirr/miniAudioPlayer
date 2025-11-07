@@ -5,12 +5,17 @@
 MainComponent::MainComponent()
 {
     addAndMakeVisible(player1);
-    setSize(1000, 1000);
-    setAudioChannels(0, 2);
     addAndMakeVisible(player2);
+    setSize(1000, 1000);
+
+    mixer.addInputSource(&player1.getAudio().getTransportSource(), false);
+    mixer.addInputSource(&player2.getAudio().getTransportSource(), false);
+    setAudioChannels(0, 2);
     loadSession();
+
     player1.setBackgroundGradient(juce::Colours::darkblue, juce::Colours::purple);
     player2.setBackgroundGradient(juce::Colours::mediumvioletred, juce::Colours::yellow);
+    resized();
         
 }
 
@@ -22,6 +27,7 @@ MainComponent::~MainComponent()
 
 void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
+    mixer.prepareToPlay(samplesPerBlockExpected, sampleRate);
     player1.prepareToPlay(samplesPerBlockExpected, sampleRate);
     player2.prepareToPlay(samplesPerBlockExpected, sampleRate);
 }
@@ -29,16 +35,15 @@ void MainComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate
 void MainComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)
 {
     bufferToFill.clearActiveBufferRegion();
-    player1.getNextAudioBlock(bufferToFill);
-    player2.getNextAudioBlock(bufferToFill);
+    mixer.getNextAudioBlock(bufferToFill);
 
 }
 
 void MainComponent::releaseResources()
 {
+    mixer.releaseResources();
     player1.releaseResources();
     player2.releaseResources();
-
 }
 
 void MainComponent::resized()

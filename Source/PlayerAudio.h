@@ -39,13 +39,14 @@ public:
     bool isFileLoaded()const;
     AudioMetadata getCurrentMetadata() const;
     juce::String getFormattedDuration() const;
-
+	juce::AudioTransportSource& getTransportSource();
 
 
 private:
 	juce::AudioFormatManager formatManager;
 	std::unique_ptr<juce::AudioFormatReaderSource> readerSource;
 	juce::AudioTransportSource transportSource;
+	juce::MixerAudioSource mixer;
 
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlayerAudio)
 
