@@ -15,8 +15,8 @@ public:
     void saveSession();
     void loadSession();
 
-
 private:
+    juce::Image logoImage;
     PlayerGUI player1;
     PlayerGUI player2;
     juce::MixerAudioSource mixer;

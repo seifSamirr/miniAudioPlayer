@@ -61,6 +61,11 @@ private:
 	juce::TextButton abLoopButton{ "A-B Loop" };
 	juce::TextButton Mixer{ "Mix" };
 
+	// theam
+	juce::TextButton backgroundToggleButton{ "Change Background" };
+	juce::Image backgroundImage;
+	bool useBackgroundImage = false;
+	std::unique_ptr<juce::FileChooser> bgFileChooser;
 
     std::vector<std::pair<juce::String, double>> markers;
 	juce::File lastSessionFile;							   

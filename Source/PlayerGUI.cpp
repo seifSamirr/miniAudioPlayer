@@ -1,8 +1,8 @@
-#include "PlayerGui.h"
+﻿#include "PlayerGui.h"
 #include "PlayerAudio.h"
 
 PlayerGUI::PlayerGUI() {
-    for (auto* btn : { &loadButton, &restartButton, &stopButton, &repeatButton, &muteButton, &playButton, &endButton, &forwardButton, &backwardButton, &loadPlaylistButton, &abLoopButton, &Mixer, &repeatButton })
+    for (auto* btn : { &loadButton, &restartButton, &stopButton, &repeatButton, &muteButton, &playButton, &endButton, &forwardButton, &backwardButton, &loadPlaylistButton, &abLoopButton, &Mixer, &repeatButton, &backgroundToggleButton })
     {
         btn->addListener(this);
         addAndMakeVisible(btn);
@@ -14,9 +14,7 @@ PlayerGUI::PlayerGUI() {
     playButton.setClickingTogglesState(true);
     playButton.setToggleState(false, juce::dontSendNotification);
 
-    speedSlider.setRange(0.5, 2.0, 0.01);
-    speedSlider.setValue(1.0);
-    speedSlider.addListener(this);
+    
 
     loopButton.addListener(this);
 
@@ -28,7 +26,6 @@ PlayerGUI::PlayerGUI() {
     addMarkerButton.addListener(this);
 
     addAndMakeVisible(volumeSlider);
-    addAndMakeVisible(speedSlider);
     addAndMakeVisible(loopButton);
 
     addAndMakeVisible(addMarkerButton);
@@ -45,7 +42,7 @@ PlayerGUI::PlayerGUI() {
     for (auto* btn : { &loadButton, &restartButton, &stopButton, &repeatButton, &muteButton,
                        &playButton, &endButton, &forwardButton, &backwardButton,
                        &loadPlaylistButton, &addMarkerButton, &deleteMarkerButton, &abLoopButton,
-                       &prevTrackButton, &nextTrackButton })
+                       &prevTrackButton, &nextTrackButton,& backgroundToggleButton })
     {
         setButtonStyle(*btn);
     }
@@ -74,9 +71,10 @@ PlayerGUI::PlayerGUI() {
     loadPlaylistButton.setColour(juce::TextButton::buttonColourId, juce::Colours::black);
 
     addAndMakeVisible(metadataLabel);
-    metadataLabel.setColour(juce::Label::textColourId, juce::Colours::black);
-    metadataLabel.setFont(juce::Font(18.0f));
+    metadataLabel.setColour(juce::Label::textColourId, juce::Colours::white);
+    metadataLabel.setFont(juce::Font(14.0f));
     metadataLabel.setText("No file loaded", juce::dontSendNotification);
+    metadataLabel.setJustificationType(juce::Justification::centredLeft);
 
     backgroundColour = juce::Colours::darkgrey;
     gradientStart = juce::Colours::darkgrey;
@@ -92,6 +90,16 @@ PlayerGUI::PlayerGUI() {
     volumeSlider.setColour(juce::Slider::thumbColourId, juce::Colours::aqua);        
     volumeSlider.setColour(juce::Slider::backgroundColourId, juce::Colours::black);
     volumeSlider.setColour(juce::Slider::trackColourId, juce::Colours::aqua);
+
+
+    // speed slider (noura)
+    addAndMakeVisible(speedSlider);
+    speedSlider.setRange(0.5, 2.0, 0.01);
+    speedSlider.setValue(1.0);
+    speedSlider.addListener(this);
+    speedSlider.setColour(juce::Slider::thumbColourId, juce::Colours::aqua);
+    speedSlider.setColour(juce::Slider::backgroundColourId, juce::Colours::black);
+    speedSlider.setColour(juce::Slider::trackColourId, juce::Colours::aqua);
 
 
     // Time Slider
@@ -114,14 +122,21 @@ PlayerGUI::~PlayerGUI() {}
 
 void PlayerGUI::paint(juce::Graphics& g)
 {
-    juce::ColourGradient backgroundGradient(
-        gradientStart, 0, 0,           
-        gradientEnd, 0, (float)getHeight(), 
-        false
-    );
-
-    g.setGradientFill(backgroundGradient);
-    g.fillAll();
+    if (useBackgroundImage && backgroundImage.isValid())
+    {
+        g.drawImage(backgroundImage, getLocalBounds().toFloat(),
+            juce::RectanglePlacement::fillDestination);
+    }
+    else
+    {
+        juce::ColourGradient backgroundGradient(
+            gradientStart, 0, 0,
+            gradientEnd, 0, (float)getHeight(),
+            false
+        );
+        g.setGradientFill(backgroundGradient);
+        g.fillAll();
+    }
 
     auto bounds = waveformBounds;
     g.setColour(juce::Colours::black);
@@ -146,6 +161,8 @@ void PlayerGUI::paint(juce::Graphics& g)
         g.setColour(juce::Colours::black);
         g.drawFittedText("No Audio Loaded", bounds, juce::Justification::centred, 1);
     }
+
+    // for a-b loop (seif)
     if (showMarkers)
     {
         float startX = valueToSliderX(startPoint);
@@ -184,7 +201,7 @@ void PlayerGUI::resized()
     int spacing = 5;
 
     auto topRow = area.removeFromTop(35);
-    int buttonWidth = juce::jmax(55, (topRow.getWidth() - 7 * spacing) / 8);
+    int buttonWidth = juce::jmax(60, (topRow.getWidth() - 9 * spacing) / 10);
 
     loadButton.setBounds(topRow.removeFromLeft(buttonWidth).reduced(1));
     topRow.removeFromLeft(spacing);
@@ -200,10 +217,11 @@ void PlayerGUI::resized()
     topRow.removeFromLeft(spacing);
     endButton.setBounds(topRow.removeFromLeft(buttonWidth).reduced(1));
     topRow.removeFromLeft(spacing);
-    abLoopButton.setBounds(topRow.reduced(1));
+    abLoopButton.setBounds(topRow.removeFromLeft(buttonWidth).reduced(1));
+    topRow.removeFromLeft(spacing);
+    backgroundToggleButton.setBounds(topRow.reduced(1));
 
     area.removeFromTop(spacing);
-
     auto slidersRow = area.removeFromTop(40);
     int sliderWidth = (slidersRow.getWidth() - 10) / 2;
     volumeSlider.setBounds(slidersRow.removeFromLeft(sliderWidth));
@@ -218,15 +236,15 @@ void PlayerGUI::resized()
 
     area.removeFromTop(spacing);
 
-    auto transportRow = area.removeFromTop(50);
-    int navButtonWidth = juce::jmax(65, transportRow.getWidth() / 6);
+    auto transportRow = area.removeFromTop(70);
+    int navButtonWidth = juce::jmax(65, (transportRow.getWidth() - spacing * 2) / 8);
 
     backwardButton.setBounds(transportRow.removeFromLeft(navButtonWidth).reduced(1));
     transportRow.removeFromLeft(spacing);
     forwardButton.setBounds(transportRow.removeFromRight(navButtonWidth).reduced(1));
     transportRow.removeFromRight(spacing);
 
-    metadataLabel.setBounds(transportRow.reduced(3));
+    metadataLabel.setBounds(transportRow.reduced(5));
 
     area.removeFromTop(spacing);
 
@@ -422,6 +440,63 @@ void PlayerGUI::buttonClicked(juce::Button* button)
 
         repaint();
     }
+    else if (button == &backgroundToggleButton)
+    {
+        if (useBackgroundImage)
+        {
+            useBackgroundImage = false;
+            backgroundImage = juce::Image();
+            backgroundToggleButton.setButtonText("Change Background");
+            repaint();
+        }
+        else
+        {
+            bgFileChooser = std::make_unique<juce::FileChooser>(
+                "Select background image...",
+                juce::File{},
+                "*.jpg;*.jpeg;*.png;*.bmp");
+
+            bgFileChooser->launchAsync(
+                juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
+                [this](const juce::FileChooser& fc)
+                {
+                    auto file = fc.getResult();
+                    if (file.existsAsFile())
+                    {
+                        backgroundImage = juce::ImageFileFormat::loadFrom(file);
+                        if (backgroundImage.isValid())
+                        {
+                            useBackgroundImage = true;
+                            backgroundToggleButton.setButtonText("Remove BG");
+                            repaint();
+                        }
+                    }
+                }
+            );
+        }
+    }
+    else if (button == &nextTrackButton)
+    {
+        if (playlist.hasNext())
+        {
+            int currentIndex = playlist.getCurrentIndex();
+            playlist.setCurrentIndex(currentIndex + 1);
+
+            playSelectedTrack();     
+            updatePlaylistDisplay();  
+        }
+        }
+    else if (button == &prevTrackButton)
+    {
+        if (playlist.hasPrevious())
+        {
+            int currentIndex = playlist.getCurrentIndex();
+            playlist.setCurrentIndex(currentIndex - 1);
+
+            playSelectedTrack();    
+            updatePlaylistDisplay();     
+        }
+        }
 }
 
 void PlayerGUI::sliderValueChanged(juce::Slider* slider)
@@ -553,12 +628,11 @@ void PlayerGUI::updateMetadataDisplay()
     auto metadata = playerAudio.getCurrentMetadata();
 
     juce::String metadataText;
-    metadataText += "Title: " + metadata.title + "\n";
-    metadataText += "Artist: " + metadata.artist + "\n";
-    metadataText += "Duration: " + playerAudio.getFormattedDuration();
+    metadataText << "Title: " << metadata.title << "  |  ";
+    metadataText << "Artist: " << metadata.artist << "  |  ";
+    metadataText << "Duration: " << playerAudio.getFormattedDuration();
 
     metadataLabel.setText(metadataText, juce::dontSendNotification);
-
 }
 
 float PlayerGUI::valueToSliderX(double value)
