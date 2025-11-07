@@ -1,6 +1,7 @@
 #pragma once 
 #include <JuceHeader.h>
 #include <vector>
+#include "MetadataReader.h"
 
 class PlayerAudio : public juce::ChangeListener
 {
@@ -26,13 +27,19 @@ public:
 	void setVolume(float newVolume);
 	void setSpeed(float speed);
 
-
 	void changeListenerCallback(juce::ChangeBroadcaster* source) override;
 	void getRepeatValue(bool value);
 	bool repeatValue;
 	void skipforward(double seconds);
 	void skipbackward(double seconds);
 	juce::AudioFormatManager& getFormatManager() { return formatManager; }
+
+    void restart();
+    void loadFileFromPlaylist(const juce::File& file);
+    bool isFileLoaded()const;
+    AudioMetadata getCurrentMetadata() const;
+    juce::String getFormattedDuration() const;
+
 
 
 private:
@@ -41,5 +48,7 @@ private:
 	juce::AudioTransportSource transportSource;
 
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlayerAudio)
+
+    AudioMetadata currentMetadata;
 };
 

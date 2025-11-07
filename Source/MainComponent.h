@@ -11,6 +11,10 @@ public:
     void releaseResources() override;
     void paint(juce::Graphics& g) override;
     void resized() override;
+
+    void saveSession();
+    void loadSession();
+
 private:
     PlayerGUI player1;
     PlayerGUI player2;

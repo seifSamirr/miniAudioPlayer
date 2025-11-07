@@ -13,6 +13,12 @@
       <FILE id="YewoDF" name="PlayerGUI.cpp" compile="1" resource="0" file="Source/PlayerGUI.cpp"/>
       <FILE id="hj7riC" name="PlayerGUI.h" compile="0" resource="0" file="Source/PlayerGUI.h"/>
     </GROUP>
+    <FILE id="fAr50u" name="MetadataReader.cpp" compile="1" resource="0"
+          file="Source/MetadataReader.cpp"/>
+    <FILE id="pcuwhO" name="MetadataReader.h" compile="0" resource="0"
+          file="Source/MetadataReader.h"/>
+    <FILE id="TbVHlG" name="Playlist.cpp" compile="1" resource="0" file="Source/Playlist.cpp"/>
+    <FILE id="MlAhZS" name="Playlist.h" compile="0" resource="0" file="Source/Playlist.h"/>
   </MAINGROUP>
   <MODULES>
     <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>

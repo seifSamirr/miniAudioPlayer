@@ -24,6 +24,23 @@ void PlayerAudio::releaseResources()
     transportSource.releaseResources();
 }
 
+
+AudioMetadata PlayerAudio::getCurrentMetadata() const
+{
+    return currentMetadata;
+}
+
+juce::String PlayerAudio::getFormattedDuration() const
+{
+    int totalSeconds = (int)currentMetadata.duration;
+    int minutes = totalSeconds / 60;
+    int seconds = totalSeconds % 60;
+
+    return juce::String::formatted("%d:%02d", minutes, seconds);
+}
+
+
+
 bool PlayerAudio::loadFile(const juce::File& file)
 {
     if (auto* reader = formatManager.createReaderFor(file))
@@ -41,8 +58,11 @@ bool PlayerAudio::loadFile(const juce::File& file)
             0,
             nullptr,
             reader->sampleRate);
-        transportSource.start();
+       // transportSource.start();
     }
+
+   currentMetadata = MetadataReader::readMetadata(file);
+	
     return false;
 }
 
@@ -104,6 +124,8 @@ void PlayerAudio::pause() {
 
 void PlayerAudio::skipforward(double seconds)
 {
+   
+
 	double newPosition = getPosition() + seconds;   
 	double lengthoftrack = getLength();
     if (newPosition > lengthoftrack) {
@@ -138,4 +160,25 @@ void PlayerAudio::setSpeed(float speed)
         transportSource.start();
         
     }
+}
+
+void PlayerAudio::restart()
+{
+    stop();
+    setPosition(0.0);
+    play();
+
+}
+void PlayerAudio::loadFileFromPlaylist(const juce::File& file) 
+{
+    stop();
+
+    if (file.existsAsFile())
+	{
+        loadFile(file);
+    }
+}
+bool PlayerAudio::isFileLoaded() const {
+
+    return readerSource != nullptr;
 }
