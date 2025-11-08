@@ -4,6 +4,14 @@
 
 MainComponent::MainComponent()
 {
+    juce::Image logoImage = juce::ImageFileFormat::loadFrom(
+        BinaryData::SMA3NY_ico,       
+        BinaryData::SMA3NY_icoSize   
+    );
+
+    SMA3NYlogo.setImage(logoImage);
+    addAndMakeVisible(SMA3NYlogo);
+
     addAndMakeVisible(player1);
     addAndMakeVisible(player2);
     setSize(1000, 1000);
@@ -54,6 +62,8 @@ void MainComponent::resized()
 
     player1.setBounds(padding, padding, playerWidth, playerHeight);
     player2.setBounds(playerWidth + (padding * 2), padding, playerWidth, playerHeight);
+
+    SMA3NYlogo.setBounds(10, 10, 100, 100);
 }
 
 void MainComponent::paint(juce::Graphics& g)

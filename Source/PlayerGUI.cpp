@@ -2,11 +2,22 @@
 #include "PlayerAudio.h"
 
 PlayerGUI::PlayerGUI() {
+    updateComponentStyles();
     for (auto* btn : { &loadButton, &restartButton, &stopButton, &repeatButton, &muteButton, &playButton, &endButton, &forwardButton, &backwardButton, &loadPlaylistButton, &abLoopButton, &Mixer, &repeatButton, &backgroundToggleButton })
     {
         btn->addListener(this);
         addAndMakeVisible(btn);
+        btn->setOpaque(false);
     }
+    //for sec theam 
+    volumeSlider.setOpaque(false);
+    speedSlider.setOpaque(false);
+    timeSlider.setOpaque(false);
+    markersList.setOpaque(false);
+    playlistBox.setOpaque(false);
+    currentTrackLabel.setOpaque(false);
+    metadataLabel.setOpaque(false);
+
     // repeat button
     repeatButton.setClickingTogglesState(true);
     repeatButton.setToggleState(false, juce::dontSendNotification);
@@ -32,21 +43,6 @@ PlayerGUI::PlayerGUI() {
     addAndMakeVisible(deleteMarkerButton);
     addAndMakeVisible(markersList);
 
-    auto setButtonStyle = [](juce::TextButton& btn)
-        {
-            btn.setColour(juce::TextButton::buttonColourId, juce::Colours::black);
-            btn.setColour(juce::TextButton::textColourOffId, juce::Colours::whitesmoke);
-            btn.setColour(juce::TextButton::buttonOnColourId, juce::Colours::aqua);
-        };
-
-    for (auto* btn : { &loadButton, &restartButton, &stopButton, &repeatButton, &muteButton,
-                       &playButton, &endButton, &forwardButton, &backwardButton,
-                       &loadPlaylistButton, &addMarkerButton, &deleteMarkerButton, &abLoopButton,
-                       &prevTrackButton, &nextTrackButton,& backgroundToggleButton })
-    {
-        setButtonStyle(*btn);
-    }
-
     markersList.onChange = [this]()
         {
             int index = markersList.getSelectedId() - 1;
@@ -65,10 +61,8 @@ PlayerGUI::PlayerGUI() {
     playlistModel = std::make_unique<PlaylistModel>(*this);
     playlistBox.setModel(playlistModel.get());
     addAndMakeVisible(playlistBox);
-    playlistBox.setColour(juce::ListBox::backgroundColourId, juce::Colours::black);
     playlistBox.setColour(juce::ListBox::textColourId, juce::Colours::black);
     playlistBox.setColour(juce::ListBox::outlineColourId, juce::Colours::white);
-    loadPlaylistButton.setColour(juce::TextButton::buttonColourId, juce::Colours::black);
 
     addAndMakeVisible(metadataLabel);
     metadataLabel.setColour(juce::Label::textColourId, juce::Colours::white);
@@ -88,7 +82,6 @@ PlayerGUI::PlayerGUI() {
     volumeSlider.addListener(this);
     addAndMakeVisible(volumeSlider);
     volumeSlider.setColour(juce::Slider::thumbColourId, juce::Colours::aqua);        
-    volumeSlider.setColour(juce::Slider::backgroundColourId, juce::Colours::black);
     volumeSlider.setColour(juce::Slider::trackColourId, juce::Colours::aqua);
 
 
@@ -98,7 +91,6 @@ PlayerGUI::PlayerGUI() {
     speedSlider.setValue(1.0);
     speedSlider.addListener(this);
     speedSlider.setColour(juce::Slider::thumbColourId, juce::Colours::aqua);
-    speedSlider.setColour(juce::Slider::backgroundColourId, juce::Colours::black);
     speedSlider.setColour(juce::Slider::trackColourId, juce::Colours::aqua);
 
 
@@ -109,7 +101,6 @@ PlayerGUI::PlayerGUI() {
 
     timeSlider.setColour(juce::Slider::thumbColourId, juce::Colours::aqua);         
     timeSlider.setColour(juce::Slider::trackColourId, juce::Colours::aqua);     
-    timeSlider.setColour(juce::Slider::backgroundColourId, juce::Colours::black);  
     timeSlider.setColour(juce::Slider::textBoxTextColourId, juce::Colours::white); 
 
    
@@ -447,6 +438,8 @@ void PlayerGUI::buttonClicked(juce::Button* button)
             useBackgroundImage = false;
             backgroundImage = juce::Image();
             backgroundToggleButton.setButtonText("Change Background");
+
+            updateComponentStyles();
             repaint();
         }
         else
@@ -468,6 +461,7 @@ void PlayerGUI::buttonClicked(juce::Button* button)
                         {
                             useBackgroundImage = true;
                             backgroundToggleButton.setButtonText("Remove BG");
+                            updateComponentStyles();
                             repaint();
                         }
                     }
@@ -751,4 +745,46 @@ void PlayerGUI::setBackgroundGradient(juce::Colour start, juce::Colour end)
     gradientStart = start;
     gradientEnd = end;
     repaint(); 
+}
+
+void PlayerGUI::updateComponentStyles()
+{
+    juce::Colour buttonBG;
+    juce::Colour sliderBG;
+    juce::Colour listBG;
+
+    if (useBackgroundImage)
+    {
+        buttonBG = juce::Colours::transparentBlack;
+        sliderBG = juce::Colours::transparentBlack;
+        listBG = juce::Colours::black.withAlpha(0.7f); 
+    }
+    else
+    {
+        buttonBG = juce::Colours::black;
+        sliderBG = juce::Colours::black;
+        listBG = juce::Colours::black;
+    }
+
+    auto setButtonStyle = [buttonBG](juce::TextButton& btn)
+        {
+            btn.setColour(juce::TextButton::buttonColourId, buttonBG);
+            btn.setColour(juce::TextButton::textColourOffId, juce::Colours::whitesmoke);
+            btn.setColour(juce::TextButton::buttonOnColourId, juce::Colours::aqua);
+        };
+
+    for (auto* btn : { &loadButton, &restartButton, &stopButton, &repeatButton, &muteButton,
+                        &playButton, &endButton, &forwardButton, &backwardButton,
+                        &loadPlaylistButton, &addMarkerButton, &deleteMarkerButton, &abLoopButton,
+                        &prevTrackButton, &nextTrackButton, &backgroundToggleButton })
+    {
+        setButtonStyle(*btn);
+    }
+    loadPlaylistButton.setColour(juce::TextButton::buttonColourId, buttonBG);
+
+    volumeSlider.setColour(juce::Slider::backgroundColourId, sliderBG);
+    speedSlider.setColour(juce::Slider::backgroundColourId, sliderBG);
+    timeSlider.setColour(juce::Slider::backgroundColourId, sliderBG);
+
+    playlistBox.setColour(juce::ListBox::backgroundColourId, listBG);
 }

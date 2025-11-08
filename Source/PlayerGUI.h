@@ -139,6 +139,8 @@ private:
 	void mouseDrag(const juce::MouseEvent& e);
 	void mouseUp(const juce::MouseEvent&);
 
+	// for sec theam
+	void updateComponentStyles();
 
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlayerGUI)
 };

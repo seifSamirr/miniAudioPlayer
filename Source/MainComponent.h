@@ -1,6 +1,8 @@
 #pragma once // MainComponent.h
 #include "JuceHeader.h"
 #include "PlayerGUI.h"
+#include "BinaryData.h"
+
 class MainComponent : public juce::AudioAppComponent
 {
 public:
@@ -20,5 +22,8 @@ private:
     PlayerGUI player1;
     PlayerGUI player2;
     juce::MixerAudioSource mixer;
+
+    juce::ImageComponent SMA3NYlogo;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };
